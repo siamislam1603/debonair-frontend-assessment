@@ -10,6 +10,7 @@ import {
   Typography,
   styled,
 } from '@mui/material'
+import {Outlet} from 'react-router-dom'
 const MenuItem = styled(Button)`
   flex-direction: column;
   & span {
@@ -18,7 +19,7 @@ const MenuItem = styled(Button)`
   }
 `
 const Offset = styled('div')(({theme}) => theme.mixins.toolbar)
-const Layout = ({children}) => {
+const Layout = () => {
   return (
     <>
       <AppBar position="fixed" elevation={0} color="secondary">
@@ -41,7 +42,9 @@ const Layout = ({children}) => {
         </Toolbar>
       </AppBar>
       <Offset />
-      <Container sx={{py: 3}}>{children}</Container>
+      <Container sx={{py: 3}}>
+        <Outlet />
+      </Container>
       <Offset />
       <AppBar position="fixed" color="secondary" sx={{top: 'auto', bottom: 0}}>
         <Toolbar>

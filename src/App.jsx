@@ -1,14 +1,22 @@
-import {Typography} from '@mui/material'
+import {Route, Routes} from 'react-router-dom'
 import './App.css'
 import Layout from './components/Layout'
-import UsersTabs from './components/UsersTabs'
+import Users from './components/Users'
+import UserDetails from './components/UserDetails'
 
 function App() {
   return (
-    <Layout>
-      <Typography variant="h4">Users</Typography>
-      <UsersTabs/>
-    </Layout>
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<Users />} />
+        <Route
+          path="/users/:userId"
+          element={
+            <UserDetails/>
+          }
+        />
+      </Route>
+    </Routes>
   )
 }
 

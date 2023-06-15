@@ -1,12 +1,11 @@
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd'
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
 import {useState} from 'react'
-import Admins from './Admins'
 import ButtonTabs from './ButtonTabs'
-import Employees from './Employees'
+import UsersTabView from './UsersTabView'
 const tabs = [
-  {label: 'Admins', icon: <ManageAccountsIcon />, tabView: <Admins />},
-  {label: 'Employees', icon: <AssignmentIndIcon />, tabView: <Employees />},
+  {label: 'Admins', icon: <ManageAccountsIcon />, tabView: <UsersTabView activeTab={'admins'}/>},
+  {label: 'Employees', icon: <AssignmentIndIcon />, tabView: <UsersTabView activeTab={'employees'} />},
 ]
 
 const UsersTabs = () => {
