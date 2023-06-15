@@ -18,16 +18,19 @@ const MenuItem = styled(Button)`
     margin-left: 0;
   }
 `
+const Logo=styled('img')`
+  height:58px;
+  object-fit:contain;
+  object-position:center;
+`
 const Offset = styled('div')(({theme}) => theme.mixins.toolbar)
 const Layout = () => {
   return (
     <>
       <AppBar position="fixed" elevation={0} color="secondary">
         <Toolbar>
-          <Typography variant="h6" flexGrow={1} color="primary">
-            DEMO APP
-          </Typography>
-          <Stack spacing={4} direction="row" alignItems="center">
+          <Logo src="https://debonairgroupbd.com/wp-content/uploads/2022/02/logo-1.png" alt=""  />
+          <Stack flexGrow={1} justifyContent='end' spacing={4} direction="row" alignItems="center">
             <MenuItem startIcon={<HomeIcon />}>Home</MenuItem>
             <Stack direction="row" alignItems="center" spacing={2}>
               <Avatar />
