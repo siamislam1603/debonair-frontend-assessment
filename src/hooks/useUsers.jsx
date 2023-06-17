@@ -1,21 +1,25 @@
-import {useEffect, useState} from 'react'
-import {getUsers} from '../api'
+import { useCallback, useEffect, useState } from "react";
+import { getUsers } from "../api";
 
 const useUsers = () => {
-    const [users,setUsers]=useState({admins:[],employess:[]});
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const {data} = await getUsers()
-      const tempAdmins = [],
-        tempEmployees = []
-      data.readEmployeeData.forEach((user) => {
-        if (user.employeeType === 'Employee') tempEmployees.push(user)
-        else tempAdmins.push(user)
-      })
-      setUsers({admins: tempAdmins, employees: tempEmployees})
-    }
-    fetchUsers()
+  const [users, setUsers] = useState({ admins: [], employess: [] });
+  const fetchUsers = useCallback(async () => {
+    const { data } = await getUsers();
+    const tempAdmins = [],
+      tempEmployees = [];
+    data.readEmployeeData.forEach((user) => {
+      if (user.employeeType === "Employee") tempEmployees.push(user);
+      else tempAdmins.push(user);
+    });
+    return { admins: tempAdmins, employees: tempEmployees };
   }, []);
-  return users;
-}
-export default useUsers
+  useEffect(() => {
+    fetchUsers()
+      .then((res) => {
+        setUsers(res);
+      })
+      .catch((err) => console.log(err));
+  }, [fetchUsers]);
+  return { users, fetchUsers };
+};
+export default useUsers;
