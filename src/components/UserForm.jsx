@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { useFormik } from "formik";
 import { useCallback, useEffect, useState } from "react";
-import { createUser, getDistricts, getDivisions } from "../api";
+import { createUser, getDistricts, getDivisions, updateUser } from "../api";
 import { userFormSchema } from "../schemas";
 import Toaster from "./Toaster";
 const userTypes = [
@@ -35,6 +35,7 @@ const InputSelect = ({
   values,
   touched,
   errors,
+  InputProps,
 }) => (
   <FormControl fullWidth required error={touched[name] && errors[name]}>
     <InputLabel id={name}>{label}</InputLabel>
@@ -45,6 +46,7 @@ const InputSelect = ({
       name={name}
       onChange={handleChange}
       onBlur={handleBlur}
+      inputProps={InputProps}
     >
       {menuItems.map((item, i) => (
         <MenuItem
@@ -66,18 +68,18 @@ const InputSelect = ({
   </FormControl>
 );
 
-const UserForm = ({ onCancel, updateUsersList }) => {
+const UserForm = ({ onCancel, updateUsersList, individualUser, editForm }) => {
   const [toaster, setToaster] = useState({
     open: false,
     success: true,
     message: "",
   });
   const initialValues = {
-    employeeType: userTypes[0].value,
-    firstName: "",
-    lastName: "",
-    divisionId: 0,
-    districeID: 0,
+    employeeType: individualUser?.employeeType ?? userTypes[0].value,
+    firstName: individualUser?.firstName ?? "",
+    lastName: individualUser?.lastName ?? "",
+    divisionId: individualUser?.divisionId ?? 0,
+    districeID: individualUser?.districeID ?? 0,
   };
   const handleCancel = () => {
     if (onCancel) onCancel();
@@ -94,16 +96,22 @@ const UserForm = ({ onCancel, updateUsersList }) => {
         divisionId: isAdmin ? 0 : values.divisionId,
         districeID: isAdmin ? 0 : values.districeID,
       };
-      const { data } = await createUser(user);
+      const { data } = individualUser
+        ? await updateUser({ userId: individualUser.empID, data: user })
+        : await createUser(user);
       setToaster({
         success: data.isSuccess,
         message: data.isSuccess
-          ? "Created user successfully"
-          : "Failed to create user",
+          ? `${individualUser ? "Updated" : "Created"} user successfully`
+          : `Failed to ${individualUser ? "update" : "create"} user`,
         open: true,
       });
       if (data.isSuccess) {
-        updateUsersList(isAdmin);
+        if (!individualUser) updateUsersList(isAdmin);
+        else{
+          formik.setFieldValue("districeID", user.districeID);
+          formik.setFieldValue("divisionId", user.divisionId);
+        }
         handleCancel();
       }
     },
@@ -112,16 +120,18 @@ const UserForm = ({ onCancel, updateUsersList }) => {
     formik;
   const [divisions, setDivisions] = useState([]);
   const [districts, setDistricts] = useState([]);
+  const [isFetchedFirst, setIsFetchedFirst] = useState(false);
   const fetchDistricts = useCallback(async (divisionId) => {
     const { data } = await getDistricts(divisionId);
     setDistricts(data.readDistrictData);
-    formik.setFieldValue("districeID", data.readDistrictData[0].districtID);
+    if (isFetchedFirst)
+      formik.setFieldValue("districeID", data.readDistrictData[0].districtID);
+    else setIsFetchedFirst(true);
   }, []);
   useEffect(() => {
     const fetchDivisions = async () => {
       const { data } = await getDivisions();
       setDivisions(data.readDivisionData);
-      formik.setFieldValue("divisionId", data.readDivisionData[0].divID);
     };
     fetchDivisions();
   }, []);
@@ -132,7 +142,25 @@ const UserForm = ({ onCancel, updateUsersList }) => {
   const handleToasterClose = () => {
     setToaster({ ...toaster, open: false });
   };
-
+  const TextInputProps = {
+    variant: "outlined",
+    required: true,
+    onChange: handleChange,
+    onBlur: handleBlur,
+    InputProps: {
+      readOnly: individualUser && !editForm,
+    },
+  };
+  const SelectInputProps = {
+    handleChange,
+    handleBlur,
+    values,
+    touched,
+    errors,
+    InputProps: {
+      readOnly: individualUser && !editForm,
+    },
+  };
   return (
     <>
       <Form noValidate autoComplete="off" onSubmit={handleSubmit}>
@@ -140,19 +168,12 @@ const UserForm = ({ onCancel, updateUsersList }) => {
           name: "employeeType",
           label: "Select User Type",
           menuItems: userTypes,
-          handleChange,
-          handleBlur,
-          values,
-          touched,
-          errors,
+          ...SelectInputProps,
         })}
         <TextField
           label="Enter First Name"
           name="firstName"
-          variant="outlined"
-          required
-          onChange={handleChange}
-          onBlur={handleBlur}
+          {...TextInputProps}
           value={values.firstName}
           error={touched.firstName && errors.firstName}
           helperText={
@@ -162,54 +183,45 @@ const UserForm = ({ onCancel, updateUsersList }) => {
         <TextField
           label="Enter Last Name"
           name="lastName"
-          variant="outlined"
-          required
-          onChange={handleChange}
-          onBlur={handleBlur}
+          {...TextInputProps}
           value={values.lastName}
           error={touched.lastName && errors.lastName}
           helperText={
             touched.lastName && errors.lastName ? errors.lastName : null
           }
         />
-        {values.employeeType === "Employee" ? (
+        {values.employeeType === "Employee" || (individualUser && !editForm) ? (
           <>
             {InputSelect({
               name: "divisionId",
               label: "Select Division",
               menuItems: divisions ?? [],
-              handleChange,
-              handleBlur,
-              values,
-              touched,
-              errors,
+              ...SelectInputProps,
             })}
             {InputSelect({
               name: "districeID",
               label: "Select District",
               menuItems: districts ?? [],
-              handleChange,
-              handleBlur,
-              values,
-              touched,
-              errors,
+              ...SelectInputProps,
             })}
           </>
         ) : null}
 
-        <Stack
-          direction="row"
-          justifyContent="end"
-          spacing={3}
-          alignItems="center"
-        >
-          <Button variant="outlined" color="error" onClick={handleCancel}>
-            Cancel
-          </Button>
-          <Button variant="contained" type="submit">
-            Save
-          </Button>
-        </Stack>
+        {(individualUser && editForm) || !individualUser ? (
+          <Stack
+            direction="row"
+            justifyContent="end"
+            spacing={3}
+            alignItems="center"
+          >
+            <Button variant="outlined" color="error" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button variant="contained" type="submit">
+              {individualUser ? "Update" : "Save"}
+            </Button>
+          </Stack>
+        ) : null}
       </Form>
       <Toaster
         success={toaster.success}

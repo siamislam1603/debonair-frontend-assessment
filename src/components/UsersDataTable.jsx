@@ -44,7 +44,7 @@ const UsersDataTable = ({ usersList, children }) => {
     {
       name: "firstName",
       header: "First Name",
-      minWidth: 50,
+      minWidth: 150,
       defaultFlex: 1,
       render,
       shouldComponentUpdate,
@@ -119,8 +119,11 @@ const UsersDataTable = ({ usersList, children }) => {
       <Stack
         direction="row"
         justifyContent="space-between"
-        alignItems="center"
-        sx={{ my: 3 }}
+        alignItems='flex-end'
+        marginY={3}
+        spacing={2}
+        flexWrap="wrap"
+        useFlexGap 
       >
         <TextField
           label="Search Users"
@@ -132,6 +135,7 @@ const UsersDataTable = ({ usersList, children }) => {
       <ReactDataGrid
         onReady={setGridRef}
         idProperty="empID"
+        columnMinWidth={150}
         columns={columns}
         dataSource={dataSource}
         style={gridStyle}

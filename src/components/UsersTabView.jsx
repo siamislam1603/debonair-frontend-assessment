@@ -8,7 +8,6 @@ import UsersDataTable from "./UsersDataTable";
 
 const UsersTabView = ({ activeTab }) => {
   const { users, fetchUsers } = useUsers();
-  console.log({ users });
   const [usersList, setUsersList] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const handleModalClose = () => {
